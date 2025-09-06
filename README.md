@@ -10,6 +10,7 @@ This repository orchestrates the complete Trendit platform using git submodules:
 trendit/
 ├── backend/     → jpotterlabs/trendit-backend   (FastAPI + Auth0)
 ├── frontend/    → jpotterlabs/trendit-frontend  (Next.js + Auth0 OAuth)
+├── mobile/      → jpotterlabs/trendit-mobile    (React Native + Auth0)
 └── docs/        → Documentation and deployment guides
 ```
 
@@ -38,6 +39,11 @@ uvicorn main:app --reload --port 8000
 cd frontend
 npm install
 npm run dev
+
+# Start mobile (new terminal - optional)
+cd mobile
+npm install
+npm run ios    # or npm run android
 ```
 
 ### 3. Production Deployment
@@ -53,6 +59,12 @@ Each component can be deployed independently:
 - Netlify static hosting
 - AWS S3 + CloudFront
 - Docker containers
+
+**Mobile Options:**
+- Apple App Store (iOS)
+- Google Play Store (Android)
+- TestFlight (iOS beta testing)
+- Firebase App Distribution (cross-platform testing)
 
 ## 🔧 Configuration
 
