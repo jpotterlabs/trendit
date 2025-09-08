@@ -2,6 +2,142 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 CRITICAL: Directory Navigation & Git Workflow
+
+### Directory Structure Understanding
+```
+trendit/ (ROOT REPO)
+├── backend/          → jpotterlabs/trendit-backend (SUBMODULE)
+├── frontend/         → jpotterlabs/trendit-frontend (SUBMODULE)  
+├── mobile/           → jpotterlabs/trendit-mobile (SUBMODULE)
+├── docs/             → Documentation
+├── CLAUDE.md         → This file
+└── TESTING_STRATEGY.md
+```
+
+### Critical Navigation Rules
+
+#### ⚠️ ALWAYS Verify Your Location
+```bash
+# Before any git operation, ALWAYS check:
+pwd                   # Verify current directory
+git remote -v         # Verify which repository you're in
+```
+
+#### Directory Navigation Commands
+```bash
+# Navigate to root repo
+cd /home/jason/projects/jpotterlabs/trendit
+
+# Navigate to specific submodule
+cd /home/jason/projects/jpotterlabs/trendit/backend
+cd /home/jason/projects/jpotterlabs/trendit/frontend
+cd /home/jason/projects/jpotterlabs/trendit/mobile
+
+# NEVER use relative cd commands across sessions - bash maintains working directory
+# ALWAYS use absolute paths when switching between root and submodules
+```
+
+### Git Submodule Workflow (CRITICAL)
+
+#### Making Changes in Submodules
+```bash
+# 1. ALWAYS work in the submodule first
+cd /home/jason/projects/jpotterlabs/trendit/backend
+
+# 2. Check submodule status
+git status              # Should show branch name, not "HEAD detached"
+git branch -a           # View available branches
+
+# 3. If in detached HEAD state, fix it:
+git checkout main       # Switch to main branch first
+git pull               # Get latest changes
+
+# 4. Create feature branch in submodule
+git checkout -b feature/your-feature-name
+
+# 5. Make your changes and commit
+git add .
+git commit -m "Your commit message"
+git push -u origin feature/your-feature-name
+
+# 6. THEN update root repo
+cd /home/jason/projects/jpotterlabs/trendit
+
+# 7. Create feature branch in root repo
+git checkout -b feature/your-feature-name
+
+# 8. Stage submodule pointer update
+git add backend    # This stages the new commit hash
+
+# 9. Commit root repo changes
+git commit -m "Update backend submodule: your change description"
+git push -u origin feature/your-feature-name
+```
+
+#### Pull Request Order
+1. **First**: Create PR for submodule repository
+2. **Second**: Create PR for root repository (includes submodule update)
+3. **Merge**: Submodule PR first, then root repo PR
+
+### Common Pitfalls to AVOID
+
+#### ❌ DON'T: Create branches in wrong repository
+```bash
+# WRONG - creating feature branch in root for submodule changes
+cd /home/jason/projects/jpotterlabs/trendit
+git checkout -b feature/backend-changes  # ❌ WRONG
+# Then editing backend files
+```
+
+#### ❌ DON'T: Ignore detached HEAD warnings
+```bash
+# If you see "HEAD detached at abc123" - FIX IT IMMEDIATELY
+git checkout main
+git pull
+```
+
+#### ❌ DON'T: Use relative navigation
+```bash
+cd backend    # ❌ Might fail if not in root
+cd ../frontend  # ❌ Might fail if bash session is in wrong dir
+```
+
+#### ✅ DO: Use absolute paths
+```bash
+cd /home/jason/projects/jpotterlabs/trendit/backend   # ✅ CORRECT
+cd /home/jason/projects/jpotterlabs/trendit/frontend  # ✅ CORRECT
+```
+
+### Directory Verification Checklist
+
+Before any git operation:
+- [ ] Run `pwd` to confirm location
+- [ ] Run `git remote -v` to confirm repository
+- [ ] Run `git status` to check branch and state
+- [ ] If in submodule, ensure NOT in detached HEAD state
+
+### Emergency Recovery
+
+If you get lost or make mistakes:
+```bash
+# 1. Find where you are
+pwd
+git remote -v
+
+# 2. Go to known good state
+cd /home/jason/projects/jpotterlabs/trendit
+git status
+
+# 3. Reset submodules if needed
+git submodule update --init --recursive
+
+# 4. Check all submodule states
+cd backend && git status && cd ..
+cd frontend && git status && cd ..
+cd mobile && git status && cd ..
+```
+
 ## Development Commands
 
 ### Backend (FastAPI)
@@ -322,3 +458,81 @@ git commit -m "Update backend submodule"
   - No need for --yolo flag for read-only analysis
   - Gemini's context window can handle entire codebases that would overflow Claude's context
   - When checking implementations, be specific about what you're looking for to get accurate results
+
+## API Testing & Verification
+
+### Admin Test User Endpoint
+For reliable API testing, use the admin endpoint (requires `ADMIN_SECRET_KEY`):
+
+```bash
+# Create/reset test user
+curl -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_key": "YOUR_ADMIN_SECRET_KEY"}'
+
+# Response includes consistent test credentials
+{
+  "user": {
+    "email": "test@trendit.dev",
+    "password": "TestPassword123"
+  },
+  "api_key": "tk_ABC123..."
+}
+```
+
+### Testing Workflow
+```bash
+# 1. Get test credentials
+RESPONSE=$(curl -s -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_key": "YOUR_ADMIN_KEY"}')
+
+# 2. Extract API key
+API_KEY=$(echo "$RESPONSE" | jq -r '.api_key')
+
+# 3. Test any gated endpoint
+curl -X GET "https://api.potterlabs.xyz/api/scenarios/1/subreddit-keyword-search?subreddit=python&keywords=test&date_from=2024-01-01&date_to=2024-12-31&limit=1" \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+### Verification Checklist
+
+Before making changes:
+- [ ] Verify current working directory with `pwd`
+- [ ] Check git repository with `git remote -v`
+- [ ] Confirm branch state with `git status`
+- [ ] Test endpoints work with fresh API key
+
+After making changes:
+- [ ] Run appropriate linting: `npm run lint` or `ruff` (if available)
+- [ ] Test changed functionality with admin test user
+- [ ] Verify both JWT and API key authentication still work
+- [ ] Check that submodule pointer updates correctly in root repo
+
+## Troubleshooting
+
+### Common Issues & Solutions
+
+**"Not authenticated" errors:**
+1. Check API key format (must start with `tk_`)
+2. Verify user has ACTIVE subscription status
+3. Check usage limits (free tier: 100 calls/month)
+4. Ensure API key is not expired
+
+**Git submodule confusion:**
+1. Always use `pwd` before git operations
+2. Use absolute paths for navigation
+3. Fix detached HEAD immediately: `git checkout main`
+4. Verify with `git remote -v` which repo you're in
+
+**Directory navigation issues:**
+1. Bash maintains working directory across commands
+2. Use absolute paths: `/home/jason/projects/jpotterlabs/trendit/backend`
+3. Never assume relative paths will work
+4. Always verify location before operations
+
+**Deployment verification:**
+1. Check environment variables are set on production
+2. Test admin endpoint responds with 403 for wrong key
+3. Verify submodule updates are reflected in deployment
+4. Test both new and existing functionality
