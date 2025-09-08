@@ -50,4 +50,4 @@ temp/
 
 # Backup files
 *.bak
-*.backup
+*.backup*.kate-swp
