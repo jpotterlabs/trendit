@@ -68,8 +68,8 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 - **Authentication** (`/auth`): JWT tokens, API keys, user management
 - **Auth0 Integration** (`/auth0`): OAuth callback processing
 - **Billing** (`/billing`): Subscription management via Paddle
-- **Collection Jobs** (`/api/collect`): Background data collection
-- **Data & Analytics** (`/api/data`): Query and analyze collected data
+- **Data Store** (`/api/datastore`): Background data collection jobs
+- **Data Browser** (`/api/databrowser`): Query and analyze collected data
 - **Export** (`/api/export`): Multi-format data export
 
 ## 🔐 Authentication
