@@ -1,0 +1,32 @@
+display:
+  context_lines: 3
+  diff_algorithm: unified
+  progress_indicators: true
+  show_line_numbers: true
+  syntax_highlighting: true
+  theme: dark
+git_integration:
+  auto_commit_rollbacks: false
+  include_git_metadata: true
+  respect_gitignore: true
+  track_git_changes: true
+hooks:
+  auto_snapshot_enabled: true
+  claude_integration_enabled: true
+  post_rollback_script: null
+  pre_snapshot_script: null
+performance:
+  cache_size_limit: 10000
+  compression_level: 3
+  lazy_loading_enabled: true
+  max_file_size_mb: 100
+  memory_limit_mb: 500
+  parallel_processing: true
+  snapshot_timeout_seconds: 30
+  target_snapshot_time_ms: 500
+storage:
+  cleanup_after_days: 30
+  compression_enabled: true
+  compression_level: 3
+  max_disk_usage_mb: 1000
+  max_snapshots: 100

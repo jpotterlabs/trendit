@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📋 ESSENTIAL: Complete Development Workflow
+
+**IMPORTANT**: For the complete development ceremony including feature branches, code review integration, and human-AI collaboration protocols, see **[DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)**.
+
+This document covers basic setup and commands. The workflow document covers the complete operational procedures for professional development.
+
 ## 🚨 CRITICAL: Directory Navigation & Git Workflow
 
 ### Directory Structure Understanding
