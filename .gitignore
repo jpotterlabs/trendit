@@ -51,3 +51,6 @@ temp/
 # Backup files
 *.bak
 *.backup*.kate-swp
+
+# Claude Rewind Tool
+.claude-rewind/
