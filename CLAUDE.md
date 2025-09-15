@@ -67,24 +67,67 @@ git add .
 git commit -m "Your commit message"
 git push -u origin feature/your-feature-name
 
-# 6. THEN update root repo
+# 6. Create PR for submodule (CRITICAL STEP)
+gh pr create --title "Your feature title" --body "$(cat <<'EOF'
+## Summary
+• Brief description of changes
+• Impact on the system
+
+## Technical Details
+• Key implementation details
+• Architecture considerations
+
+## Test Plan
+- [ ] Test item 1
+- [ ] Test item 2
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
+
+# 7. REPEAT for additional submodules if needed (e.g., frontend)
+cd /home/jason/projects/jpotterlabs/trendit/frontend
+git checkout -b feature/your-feature-name
+# ... make changes, commit, push, create PR ...
+
+# 8. THEN update root repo
 cd /home/jason/projects/jpotterlabs/trendit
 
-# 7. Create feature branch in root repo
+# 9. Create feature branch in root repo
 git checkout -b feature/your-feature-name
 
-# 8. Stage submodule pointer update
-git add backend    # This stages the new commit hash
+# 10. Stage submodule pointer updates
+git add backend frontend    # Stage all changed submodules
 
-# 9. Commit root repo changes
-git commit -m "Update backend submodule: your change description"
+# 11. Commit root repo changes
+git commit -m "Update submodules: your change description"
 git push -u origin feature/your-feature-name
+
+# 12. Create PR for root repository
+gh pr create --title "Your feature title" --body "$(cat <<'EOF'
+## Summary
+Updates submodules to include [feature description]
+
+## Submodule Updates
+**Backend Submodule**: PR #XX - [description]
+**Frontend Submodule**: PR #XX - [description]
+
+## Merge Order
+1. First: Merge backend submodule PR
+2. Second: Merge frontend submodule PR
+3. Third: Merge this root repository PR
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
 ```
 
-#### Pull Request Order
-1. **First**: Create PR for submodule repository
-2. **Second**: Create PR for root repository (includes submodule update)
-3. **Merge**: Submodule PR first, then root repo PR
+#### Pull Request Creation and Merge Order
+1. **First**: Create PR for each submodule repository using `gh pr create`
+2. **Second**: Create PR for root repository (includes submodule updates) using `gh pr create`
+3. **Review**: All PRs include detailed descriptions, test plans, and merge instructions
+4. **Merge Order**: Submodule PRs first, then root repo PR
+5. **Critical**: ALWAYS use `gh pr create` - pushing branches alone does NOT create PRs
 
 ### Common Pitfalls to AVOID
 
