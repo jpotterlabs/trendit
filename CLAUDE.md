@@ -67,24 +67,67 @@ git add .
 git commit -m "Your commit message"
 git push -u origin feature/your-feature-name
 
-# 6. THEN update root repo
+# 6. Create PR for submodule (CRITICAL STEP)
+gh pr create --title "Your feature title" --body "$(cat <<'EOF'
+## Summary
+• Brief description of changes
+• Impact on the system
+
+## Technical Details
+• Key implementation details
+• Architecture considerations
+
+## Test Plan
+- [ ] Test item 1
+- [ ] Test item 2
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
+
+# 7. REPEAT for additional submodules if needed (e.g., frontend)
+cd /home/jason/projects/jpotterlabs/trendit/frontend
+git checkout -b feature/your-feature-name
+# ... make changes, commit, push, create PR ...
+
+# 8. THEN update root repo
 cd /home/jason/projects/jpotterlabs/trendit
 
-# 7. Create feature branch in root repo
+# 9. Create feature branch in root repo
 git checkout -b feature/your-feature-name
 
-# 8. Stage submodule pointer update
-git add backend    # This stages the new commit hash
+# 10. Stage submodule pointer updates
+git add backend frontend    # Stage all changed submodules
 
-# 9. Commit root repo changes
-git commit -m "Update backend submodule: your change description"
+# 11. Commit root repo changes
+git commit -m "Update submodules: your change description"
 git push -u origin feature/your-feature-name
+
+# 12. Create PR for root repository
+gh pr create --title "Your feature title" --body "$(cat <<'EOF'
+## Summary
+Updates submodules to include [feature description]
+
+## Submodule Updates
+**Backend Submodule**: PR #XX - [description]
+**Frontend Submodule**: PR #XX - [description]
+
+## Merge Order
+1. First: Merge backend submodule PR
+2. Second: Merge frontend submodule PR
+3. Third: Merge this root repository PR
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
 ```
 
-#### Pull Request Order
-1. **First**: Create PR for submodule repository
-2. **Second**: Create PR for root repository (includes submodule update)
-3. **Merge**: Submodule PR first, then root repo PR
+#### Pull Request Creation and Merge Order
+1. **First**: Create PR for each submodule repository using `gh pr create`
+2. **Second**: Create PR for root repository (includes submodule updates) using `gh pr create`
+3. **Review**: All PRs include detailed descriptions, test plans, and merge instructions
+4. **Merge Order**: Submodule PRs first, then root repo PR
+5. **Critical**: ALWAYS use `gh pr create` - pushing branches alone does NOT create PRs
 
 ### Common Pitfalls to AVOID
 
@@ -143,6 +186,132 @@ cd backend && git status && cd ..
 cd frontend && git status && cd ..
 cd mobile && git status && cd ..
 ```
+
+## 🤖 CodeRabbit Review Assessment Process
+
+After creating PRs in the git ceremony workflow, wait for CodeRabbit automated code review completion, then follow this systematic assessment process:
+
+### **Review Assessment Methodology**
+
+**Step 1: Retrieve CodeRabbit Comments**
+```bash
+# For each PR, review CodeRabbit feedback directly
+gh pr view [PR_NUMBER] --repo [REPOSITORY] --comments
+```
+
+**Step 2: Categorize Issues by Severity**
+
+Organize CodeRabbit findings into these priority categories:
+
+#### **🚨 Critical Issues (Must Fix Before Merge):**
+- **Security vulnerabilities** (missing `rel="noopener"`, XSS risks, etc.)
+- **Breaking changes** that affect functionality
+- **Production deployment blockers**
+
+#### **⚠️ Should Fix (Highly Recommended):**
+- **Code quality issues** (variable shadowing, type errors)
+- **Performance problems** (inefficient algorithms, memory leaks)
+- **Maintainability concerns** (complex logic, unclear naming)
+
+#### **💡 Recommended Improvements (Consider Fixing):**
+- **Code style consistency** (indentation, formatting)
+- **Documentation improvements** (better comments, docstrings)
+- **Minor optimizations** (redundant code, simplifications)
+
+#### **ℹ️ Informational (Optional):**
+- **Best practice suggestions** that don't affect functionality
+- **Alternative approaches** that could be considered
+- **Future enhancement opportunities**
+
+### **Decision Matrix**
+
+**If Critical Issues Found (≥1):**
+- **Action**: Implement all critical fixes immediately
+- **Rationale**: Security and functionality must not be compromised
+
+**If Many Issues Found (>3-5 total):**
+- **Action**: Use `gh pr view` to implement fixes programmatically
+- **Rationale**: Efficient batch processing of multiple changes
+
+**If Few Issues Found (≤3 total):**
+- **Action**: Manual review and selective implementation
+- **Rationale**: Quick targeted fixes for specific concerns
+
+**If Clean Review (minimal/no issues):**
+- **Action**: Proceed with merge following proper order
+- **Rationale**: Code quality standards met
+
+### **Implementation Workflow**
+
+**For Critical/Many Issues:**
+```bash
+# 1. Navigate to appropriate submodule
+cd /home/jason/projects/jpotterlabs/trendit/[submodule]
+
+# 2. Ensure on correct feature branch
+git status && git branch
+
+# 3. Implement fixes (use checkpoint before changes)
+# 4. Test fixes locally
+# 5. Commit improvements
+git add . && git commit -m "Address CodeRabbit review feedback
+
+- Fix security issues (add rel='noopener' to external links)
+- Resolve code quality concerns (variable shadowing, etc.)
+- Improve code consistency and maintainability
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 6. Push updates
+git push
+```
+
+### **Assessment Example Template**
+
+```markdown
+## 📋 CodeRabbit Review Analysis for [Repository] PR #[Number]
+
+### **✅ Issues to Address ([X] actionable items):**
+
+**Critical Issues (Must Fix):**
+- [Specific security/functionality issue with file:line reference]
+
+**Should Fix:**
+- [Code quality issue with file:line reference]
+
+**Recommended:**
+- [Style/optimization suggestion with file:line reference]
+
+### **✅ Positive Findings:**
+- [List approved patterns and good practices found]
+
+### **Recommendation: [Action Decision]**
+[Rationale for chosen approach based on issue severity and count]
+```
+
+### **Quality Gates**
+
+Before proceeding with merge:
+- [ ] **All critical issues resolved**
+- [ ] **Security vulnerabilities addressed**
+- [ ] **Code quality standards met**
+- [ ] **No production deployment blockers**
+- [ ] **Changes tested and verified**
+
+### **Merge Order (Post-Review)**
+
+After CodeRabbit assessment and fixes:
+1. **Backend Submodule PR** - merge first
+2. **Frontend Submodule PR** - merge second
+3. **Root Repository PR** - merge third and cleanup
+
+This systematic approach ensures:
+- ✅ **Consistent code quality** across all deployments
+- ✅ **Security standards** maintained
+- ✅ **Efficient review processing** based on issue complexity
+- ✅ **Clear decision criteria** for merge readiness
 
 ## Development Commands
 

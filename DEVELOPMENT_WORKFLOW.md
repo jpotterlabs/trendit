@@ -102,6 +102,33 @@ git push -u origin feature/[feature-name]  # First push sets upstream
 git push  # Subsequent pushes to existing branch
 ```
 
+#### Step 4: Create Pull Request (CRITICAL)
+```bash
+# Create PR immediately after push - DO NOT SKIP
+gh pr create --title "[Descriptive feature title]" --body "$(cat <<'EOF'
+## Summary
+• [Change 1 with impact description]
+• [Change 2 with system implications]
+• [Change 3 with user/developer benefit]
+
+## Technical Details
+• [Architecture decisions made]
+• [Dependencies added/modified]
+• [Breaking changes (if any)]
+
+## Test Plan
+- [ ] [Core functionality test]
+- [ ] [Edge case handling test]
+- [ ] [Integration test]
+- [ ] [Performance impact verification]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
+
+# PR URL will be displayed - save for root repo PR
+```
+
 ### Phase 3: Root Repository Update
 
 #### Step 1: Navigate to Root
@@ -124,7 +151,7 @@ cd ..
 
 #### Step 4: Update Root Repository Pointer
 ```bash
-git add [submodule]
+git add [submodule-name]   # or: git add backend frontend (multiple submodules)
 git commit -m "Update [submodule] submodule: [description]
 
 Points to [branch-name] with changes:
@@ -134,6 +161,41 @@ Points to [branch-name] with changes:
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+
+git push -u origin feature/[feature-name]  # Push root repo feature branch
+```
+
+#### Step 5: Create Root Repository Pull Request (CRITICAL)
+```bash
+# Create PR for root repo with submodule updates
+gh pr create --title "Update submodules: [feature description]" --body "$(cat <<'EOF'
+## Summary
+Updates submodules to include [feature description and system impact]
+
+## Submodule Updates
+**Backend Submodule**: PR #[XX] - [description with link]
+**Frontend Submodule**: PR #[XX] - [description with link]
+**Mobile Submodule**: PR #[XX] - [description with link] (if applicable)
+
+## Architecture Impact
+• [System-wide implications]
+• [Integration considerations]
+• [Performance/security/scalability notes]
+
+## Merge Order (CRITICAL)
+1. **First:** Merge backend submodule PR #[XX]
+2. **Second:** Merge frontend submodule PR #[XX]
+3. **Third:** Merge this root repository PR
+
+## Test Plan
+- [ ] All referenced submodule PRs merged successfully
+- [ ] Integration testing completed
+- [ ] No breaking changes between submodules
+- [ ] Deployment pipeline tested
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
 ```
 
 ## 📋 Code Review & Collaboration Workflow
@@ -146,18 +208,55 @@ When feature development is complete:
 3. **Root repository updated** to point to feature branch (if applicable)
 4. **PR link and summary provided** of all changes made
 
-**PR Creation Command**:
-```bash
-gh pr create --title "[Descriptive title]" --body "$(cat <<'EOF'
-## Summary
-- [Change 1]
-- [Change 2]
-- [Change 3]
+**PR Creation Commands (CRITICAL STEP)**:
 
-## Test plan
-- [ ] [Test item 1]
-- [ ] [Test item 2]
-- [ ] [Test item 3]
+**For Submodule PRs:**
+```bash
+# In submodule directory after push
+gh pr create --title "Your feature title" --body "$(cat <<'EOF'
+## Summary
+• Brief description of changes
+• Impact on the system
+
+## Technical Details
+• Key implementation details
+• Architecture considerations
+• Dependencies or breaking changes
+
+## Test Plan
+- [ ] Test item 1
+- [ ] Test item 2
+- [ ] Test error handling and edge cases
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)"
+```
+
+**For Root Repository PR:**
+```bash
+# In root repository after submodule pointer updates
+gh pr create --title "Update submodules: Your feature title" --body "$(cat <<'EOF'
+## Summary
+Updates submodules to include [feature description]
+
+## Submodule Updates
+**Backend Submodule**: PR #XX - [description and link]
+**Frontend Submodule**: PR #XX - [description and link]
+
+## Architecture Impact
+• How this affects the overall system
+• Integration points and considerations
+
+## Merge Order
+1. **First:** Merge backend submodule PR #XX
+2. **Second:** Merge frontend submodule PR #XX
+3. **Third:** Merge this root repository PR
+
+## Test Plan
+- [ ] All submodule PRs merged and deployed
+- [ ] Integration testing completed
+- [ ] No breaking changes confirmed
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 EOF
@@ -247,8 +346,10 @@ When informed of merge completion, Claude will:
 - ✅ **ALWAYS** verify location with `pwd` and `git remote -v` before git operations
 - ✅ **ALWAYS** work in submodule first, root repo second
 - ✅ **ALWAYS** use absolute paths for navigation between repositories
+- ✅ **ALWAYS** create PRs using `gh pr create` immediately after pushing branches
 - ✅ **ALWAYS** commit review fixes to the same feature branch
 - ✅ **ALWAYS** include Claude Code attribution in commit messages
+- ✅ **ALWAYS** include comprehensive PR descriptions with Summary, Technical Details, and Test Plan
 
 ### Pull Request Strategy
 1. **Create submodule PR first**: `jpotterlabs/trendit-[submodule]`
