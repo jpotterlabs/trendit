@@ -33,12 +33,12 @@ git remote -v         # Verify which repository you're in
 #### Directory Navigation Commands
 ```bash
 # Navigate to root repo
-cd /home/jason/projects/jpotterlabs/trendit
+cd /home/jason/Projects/jpotterlabs/trendit
 
 # Navigate to specific submodule
-cd /home/jason/projects/jpotterlabs/trendit/backend
-cd /home/jason/projects/jpotterlabs/trendit/frontend
-cd /home/jason/projects/jpotterlabs/trendit/mobile
+cd /home/jason/Projects/jpotterlabs/trendit/backend
+cd /home/jason/Projects/jpotterlabs/trendit/frontend
+cd /home/jason/Projects/jpotterlabs/trendit/mobile
 
 # NEVER use relative cd commands across sessions - bash maintains working directory
 # ALWAYS use absolute paths when switching between root and submodules
@@ -49,7 +49,7 @@ cd /home/jason/projects/jpotterlabs/trendit/mobile
 #### Making Changes in Submodules
 ```bash
 # 1. ALWAYS work in the submodule first
-cd /home/jason/projects/jpotterlabs/trendit/backend
+cd /home/jason/Projects/jpotterlabs/trendit/backend
 
 # 2. Check submodule status
 git status              # Should show branch name, not "HEAD detached"
@@ -86,12 +86,12 @@ EOF
 )"
 
 # 7. REPEAT for additional submodules if needed (e.g., frontend)
-cd /home/jason/projects/jpotterlabs/trendit/frontend
+cd /home/jason/Projects/jpotterlabs/trendit/frontend
 git checkout -b feature/your-feature-name
 # ... make changes, commit, push, create PR ...
 
 # 8. THEN update root repo
-cd /home/jason/projects/jpotterlabs/trendit
+cd /home/jason/Projects/jpotterlabs/trendit
 
 # 9. Create feature branch in root repo
 git checkout -b feature/your-feature-name
@@ -134,7 +134,7 @@ EOF
 #### ❌ DON'T: Create branches in wrong repository
 ```bash
 # WRONG - creating feature branch in root for submodule changes
-cd /home/jason/projects/jpotterlabs/trendit
+cd /home/jason/Projects/jpotterlabs/trendit
 git checkout -b feature/backend-changes  # ❌ WRONG
 # Then editing backend files
 ```
@@ -154,8 +154,8 @@ cd ../frontend  # ❌ Might fail if bash session is in wrong dir
 
 #### ✅ DO: Use absolute paths
 ```bash
-cd /home/jason/projects/jpotterlabs/trendit/backend   # ✅ CORRECT
-cd /home/jason/projects/jpotterlabs/trendit/frontend  # ✅ CORRECT
+cd /home/jason/Projects/jpotterlabs/trendit/backend   # ✅ CORRECT
+cd /home/jason/Projects/jpotterlabs/trendit/frontend  # ✅ CORRECT
 ```
 
 ### Directory Verification Checklist
@@ -175,7 +175,7 @@ pwd
 git remote -v
 
 # 2. Go to known good state
-cd /home/jason/projects/jpotterlabs/trendit
+cd /home/jason/Projects/jpotterlabs/trendit
 git status
 
 # 3. Reset submodules if needed
@@ -246,7 +246,7 @@ Organize CodeRabbit findings into these priority categories:
 **For Critical/Many Issues:**
 ```bash
 # 1. Navigate to appropriate submodule
-cd /home/jason/projects/jpotterlabs/trendit/[submodule]
+cd /home/jason/Projects/jpotterlabs/trendit/[submodule]
 
 # 2. Ensure on correct feature branch
 git status && git branch
@@ -328,11 +328,9 @@ python init_db.py
 uvicorn main:app --reload --port 8000
 
 # Testing
-python test_api.py                    # Run all tests
-python test_collection_api.py         # Collection tests
-python test_query_api.py              # Query tests
-python -m pytest                      # pytest-based tests
-python -c "import asyncio; from test_api import test_reddit_connection; asyncio.run(test_reddit_connection())"  # Single test
+# Note: Backend uses direct Python test scripts rather than pytest framework
+python ../test_paddle_integration.py  # Test Paddle billing integration
+# Individual API testing through direct module imports
 ```
 
 ### Frontend (Next.js)
@@ -370,13 +368,13 @@ Trendit is a microservices-based Reddit data collection platform with git submod
 ### Core Services
 - **Authentication**: Auth0 OAuth integration (Google, GitHub) + JWT tokens
 - **Data Collection**: Async Reddit API data gathering with PRAW/AsyncPRAW
-- **Analytics**: Sentiment analysis and engagement metrics
-- **Billing**: Paddle integration with tiered subscriptions
+- **Analytics**: Engagement metrics (sentiment endpoints removed)
+- **Billing**: Paddle with feature-gated tiers (FREE, PRO, PREMIUM)
 - **Export**: Multi-format data export (CSV, JSON, Parquet)
 
 ### Key Backend Components
-- **API Endpoints** (`backend/api/`): auth, collect, query, data, export, sentiment, billing, webhooks
-- **Services** (`backend/services/`): data_collector, reddit_client, sentiment_analyzer, paddle_service, auth0_service
+- **API Endpoints** (`backend/api/`): auth, collect, query, data, export, billing, webhooks
+- **Services** (`backend/services/`): data_collector, reddit_client, paddle_service, auth0_service
 - **Models** (`backend/models/`): SQLAlchemy database models and connection
 - **Database**: PostgreSQL with SQLAlchemy ORM
 
@@ -449,11 +447,11 @@ git commit -m "Update backend submodule"
 ```
 
 ## Testing Strategy
-- Backend: Direct Python test files with async test patterns
-- API testing with httpx for async endpoints
-- Database testing with SQLAlchemy fixtures
-- Reddit API mocking for collection tests
-- Auth0 JWT token validation testing
+- **Backend**: Direct Python test scripts (e.g., `test_paddle_integration.py`) rather than pytest framework
+- **API Testing**: Uses httpx for async endpoint testing (dependency included in requirements.txt)
+- **Database**: SQLAlchemy integration with PostgreSQL for development and production
+- **Authentication**: Auth0 JWT validation and API key testing via admin test endpoint
+- **Integration**: Use admin test user endpoint for consistent API testing with known credentials
 
 ## Production Deployment
 - **Backend**: Docker containers, Vercel serverless, or VPS hosting
@@ -462,177 +460,6 @@ git commit -m "Update backend submodule"
 - **Services**: Redis for caching, Auth0 for authentication
 
 
- # Using Gemini CLI for Large Codebase Analysis
-
-  When analyzing large codebases or multiple files that might exceed context limits, use the Gemini CLI with its massive
-  context window. Use `gemini -p` to leverage Google Gemini's large context capacity.
-
-  ## File and Directory Inclusion Syntax
-
-  Use the `@` syntax to include files and directories in your Gemini prompts. The paths should be relative to WHERE you run the
-   gemini command:
-
-  ### Examples:
-
-  **Single file analysis:**
-  ```bash
-  gemini -p "@src/main.py Explain this file's purpose and structure"
-
-  Multiple files:
-  gemini -p "@package.json @src/index.js Analyze the dependencies used in the code"
-
-  Entire directory:
-  gemini -p "@src/ Summarize the architecture of this codebase"
-
-  Multiple directories:
-  gemini -p "@src/ @tests/ Analyze test coverage for the source code"
-
-  Current directory and subdirectories:
-  gemini -p "@./ Give me an overview of this entire project"
-  
-#
- Or use --all_files flag:
-  gemini --all_files -p "Analyze the project structure and dependencies"
-
-  Implementation Verification Examples
-
-  Check if a feature is implemented:
-  gemini -p "@src/ @lib/ Has dark mode been implemented in this codebase? Show me the relevant files and functions"
-
-  Verify authentication implementation:
-  gemini -p "@src/ @middleware/ Is JWT authentication implemented? List all auth-related endpoints and middleware"
-
-  Check for specific patterns:
-  gemini -p "@src/ Are there any React hooks that handle WebSocket connections? List them with file paths"
-
-  Verify error handling:
-  gemini -p "@src/ @api/ Is proper error handling implemented for all API endpoints? Show examples of try-catch blocks"
-
-  Check for rate limiting:
-  gemini -p "@backend/ @middleware/ Is rate limiting implemented for the API? Show the implementation details"
-
-  Verify caching strategy:
-  gemini -p "@src/ @lib/ @services/ Is Redis caching implemented? List all cache-related functions and their usage"
-
-  Check for specific security measures:
-  gemini -p "@src/ @api/ Are SQL injection protections implemented? Show how user inputs are sanitized"
-
-  Verify test coverage for features:
-  gemini -p "@src/payment/ @tests/ Is the payment processing module fully tested? List all test cases"
-
-  When to Use Gemini CLI
-
-  Use gemini -p when:
-  - Analyzing entire codebases or large directories
-  - Comparing multiple large files
-  - Need to understand project-wide patterns or architecture
-  - Current context window is insufficient for the task
-  - Working with files totaling more than 100KB
-  - Verifying if specific features, patterns, or security measures are implemented
-  - Checking for the presence of certain coding patterns across the entire codebase
-
-  Important Notes
-
-  - Paths in @ syntax are relative to your current working directory when invoking gemini
-  - The CLI will include file contents directly in the context
-  - No need for --yolo flag for read-only analysis
-  - Gemini's context window can handle entire codebases that would overflow Claude's context
-  - When checking implementations, be specific about what you're looking for to get accurate results # Using Gemini CLI for Large Codebase Analysis
-
-
-  When analyzing large codebases or multiple files that might exceed context limits, use the Gemini CLI with its massive
-  context window. Use `gemini -p` to leverage Google Gemini's large context capacity.
-
-
-  ## File and Directory Inclusion Syntax
-
-
-  Use the `@` syntax to include files and directories in your Gemini prompts. The paths should be relative to WHERE you run the
-   gemini command:
-
-
-  ### Examples:
-
-
-  **Single file analysis:**
-  ```bash
-  gemini -p "@src/main.py Explain this file's purpose and structure"
-
-
-  Multiple files:
-  gemini -p "@package.json @src/index.js Analyze the dependencies used in the code"
-
-
-  Entire directory:
-  gemini -p "@src/ Summarize the architecture of this codebase"
-
-
-  Multiple directories:
-  gemini -p "@src/ @tests/ Analyze test coverage for the source code"
-
-
-  Current directory and subdirectories:
-  gemini -p "@./ Give me an overview of this entire project"
-  # Or use --all_files flag:
-  gemini --all_files -p "Analyze the project structure and dependencies"
-
-
-  Implementation Verification Examples
-
-
-  Check if a feature is implemented:
-  gemini -p "@src/ @lib/ Has dark mode been implemented in this codebase? Show me the relevant files and functions"
-
-
-  Verify authentication implementation:
-  gemini -p "@src/ @middleware/ Is JWT authentication implemented? List all auth-related endpoints and middleware"
-
-
-  Check for specific patterns:
-  gemini -p "@src/ Are there any React hooks that handle WebSocket connections? List them with file paths"
-
-
-  Verify error handling:
-  gemini -p "@src/ @api/ Is proper error handling implemented for all API endpoints? Show examples of try-catch blocks"
-
-
-  Check for rate limiting:
-  gemini -p "@backend/ @middleware/ Is rate limiting implemented for the API? Show the implementation details"
-
-
-  Verify caching strategy:
-  gemini -p "@src/ @lib/ @services/ Is Redis caching implemented? List all cache-related functions and their usage"
-
-
-  Check for specific security measures:
-  gemini -p "@src/ @api/ Are SQL injection protections implemented? Show how user inputs are sanitized"
-
-
-  Verify test coverage for features:
-  gemini -p "@src/payment/ @tests/ Is the payment processing module fully tested? List all test cases"
-
-
-  When to Use Gemini CLI
-
-
-  Use gemini -p when:
-  - Analyzing entire codebases or large directories
-  - Comparing multiple large files
-  - Need to understand project-wide patterns or architecture
-  - Current context window is insufficient for the task
-  - Working with files totaling more than 100KB
-  - Verifying if specific features, patterns, or security measures are implemented
-  - Checking for the presence of certain coding patterns across the entire codebase
-
-
-  Important Notes
-
-
-  - Paths in @ syntax are relative to your current working directory when invoking gemini
-  - The CLI will include file contents directly in the context
-  - No need for --yolo flag for read-only analysis
-  - Gemini's context window can handle entire codebases that would overflow Claude's context
-  - When checking implementations, be specific about what you're looking for to get accurate results
 
 ## API Testing & Verification
 
@@ -641,9 +468,11 @@ For reliable API testing, use the admin endpoint (requires `ADMIN_SECRET_KEY`):
 
 ```bash
 # Create/reset test user
-curl -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+API_BASE="${API_BASE:-https://api.potterlabs.xyz}"
+# export ADMIN_SECRET_KEY in your shell (avoid putting it in command history)
+curl -X POST "$API_BASE/auth/create-test-user" \
   -H "Content-Type: application/json" \
-  -d '{"admin_key": "YOUR_ADMIN_SECRET_KEY"}'
+  -d "{\"admin_key\":\"$ADMIN_SECRET_KEY\"}"
 
 # Response includes consistent test credentials
 {
@@ -658,9 +487,9 @@ curl -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
 ### Testing Workflow
 ```bash
 # 1. Get test credentials
-RESPONSE=$(curl -s -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+RESPONSE=$(curl -s -X POST "$API_BASE/auth/create-test-user" \
   -H "Content-Type: application/json" \
-  -d '{"admin_key": "YOUR_ADMIN_KEY"}')
+  -d "{\"admin_key\":\"$ADMIN_SECRET_KEY\"}")
 
 # 2. Extract API key
 API_KEY=$(echo "$RESPONSE" | jq -r '.api_key')
@@ -691,7 +520,10 @@ After making changes:
 **"Not authenticated" errors:**
 1. Check API key format (must start with `tk_`)
 2. Verify user has ACTIVE subscription status
-3. Check usage limits (free tier: 100 calls/month)
+3. Check feature entitlements for your tier:
+   - FREE — Scenarios API only (no live searches)
+   - PRO — Query API (live searches), basic analytics
+   - PREMIUM — Collect, Data, Export, advanced analytics
 4. Ensure API key is not expired
 
 **Git submodule confusion:**
@@ -702,7 +534,7 @@ After making changes:
 
 **Directory navigation issues:**
 1. Bash maintains working directory across commands
-2. Use absolute paths: `/home/jason/projects/jpotterlabs/trendit/backend`
+2. Use absolute paths: `/home/jason/Projects/jpotterlabs/trendit/backend`
 3. Never assume relative paths will work
 4. Always verify location before operations
 
@@ -711,3 +543,9 @@ After making changes:
 2. Test admin endpoint responds with 403 for wrong key
 3. Verify submodule updates are reflected in deployment
 4. Test both new and existing functionality
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
