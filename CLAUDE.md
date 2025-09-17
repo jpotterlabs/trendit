@@ -368,13 +368,13 @@ Trendit is a microservices-based Reddit data collection platform with git submod
 ### Core Services
 - **Authentication**: Auth0 OAuth integration (Google, GitHub) + JWT tokens
 - **Data Collection**: Async Reddit API data gathering with PRAW/AsyncPRAW
-- **Analytics**: Sentiment analysis and engagement metrics
-- **Billing**: Paddle integration with tiered subscriptions
+- **Analytics**: Engagement metrics (sentiment endpoints removed)
+- **Billing**: Paddle with feature-gated tiers (FREE, PRO, PREMIUM)
 - **Export**: Multi-format data export (CSV, JSON, Parquet)
 
 ### Key Backend Components
-- **API Endpoints** (`backend/api/`): auth, collect, query, data, export, sentiment, billing, webhooks
-- **Services** (`backend/services/`): data_collector, reddit_client, sentiment_analyzer, paddle_service, auth0_service
+- **API Endpoints** (`backend/api/`): auth, collect, query, data, export, billing, webhooks
+- **Services** (`backend/services/`): data_collector, reddit_client, paddle_service, auth0_service
 - **Models** (`backend/models/`): SQLAlchemy database models and connection
 - **Database**: PostgreSQL with SQLAlchemy ORM
 
@@ -468,9 +468,11 @@ For reliable API testing, use the admin endpoint (requires `ADMIN_SECRET_KEY`):
 
 ```bash
 # Create/reset test user
-curl -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+API_BASE="${API_BASE:-https://api.potterlabs.xyz}"
+# export ADMIN_SECRET_KEY in your shell (avoid putting it in command history)
+curl -X POST "$API_BASE/auth/create-test-user" \
   -H "Content-Type: application/json" \
-  -d '{"admin_key": "YOUR_ADMIN_SECRET_KEY"}'
+  -d "{\"admin_key\":\"$ADMIN_SECRET_KEY\"}"
 
 # Response includes consistent test credentials
 {
@@ -485,9 +487,9 @@ curl -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
 ### Testing Workflow
 ```bash
 # 1. Get test credentials
-RESPONSE=$(curl -s -X POST "https://api.potterlabs.xyz/auth/create-test-user" \
+RESPONSE=$(curl -s -X POST "$API_BASE/auth/create-test-user" \
   -H "Content-Type: application/json" \
-  -d '{"admin_key": "YOUR_ADMIN_KEY"}')
+  -d "{\"admin_key\":\"$ADMIN_SECRET_KEY\"}")
 
 # 2. Extract API key
 API_KEY=$(echo "$RESPONSE" | jq -r '.api_key')
@@ -518,7 +520,10 @@ After making changes:
 **"Not authenticated" errors:**
 1. Check API key format (must start with `tk_`)
 2. Verify user has ACTIVE subscription status
-3. Check usage limits (free tier: 100 calls/month)
+3. Check feature entitlements for your tier:
+   - FREE — Scenarios API only (no live searches)
+   - PRO — Query API (live searches), basic analytics
+   - PREMIUM — Collect, Data, Export, advanced analytics
 4. Ensure API key is not expired
 
 **Git submodule confusion:**
