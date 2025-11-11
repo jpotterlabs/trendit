@@ -54,3 +54,5 @@ temp/
 
 # Claude Rewind Tool
 .claude-rewind/
+
+node*
